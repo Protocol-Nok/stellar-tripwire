@@ -1,0 +1,10 @@
+{
+  "name": "tripwire-adapter-js",
+  "version": "0.1.0",
+  "private": true,
+  "description": "stellar-tripwire adapter for @stellar/stellar-sdk (JavaScript / TypeScript)",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": { "start": "node adapter.mjs" },
+  "dependencies": { "@stellar/stellar-sdk": "17.4.0" }
+}
