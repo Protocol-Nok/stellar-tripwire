@@ -52,7 +52,7 @@ Tripwire does something different: it runs the same inputs through several indep
 - [ ] Indexer-hardening guide
 - [ ] Per-CAP coverage manifest and a published divergence matrix
 
-Issues for each item are open for contributors; see [CONTRIBUTING.md](CONTRIBUTING.md).
+Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
