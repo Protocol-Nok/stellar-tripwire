@@ -3,10 +3,18 @@
 ```
 crates/tripwire-corpus/    generator + manifest types + verifier  (the source of truth)
 crates/tripwire-cli/       `tripwire` binary: generate | verify | run
-adapters/js/               one adapter: corpus -> @stellar/stellar-sdk -> results
+adapters/js/               adapter: corpus -> @stellar/stellar-sdk -> results
+adapters/go/               adapter: corpus -> github.com/stellar/go-stellar-sdk -> results
+linter/                    ESLint plugin: static checks on indexer *source*, not the corpus
 corpus/                    (generated, not committed here) the published snapshot
                             lives in stellar-tripwire-corpus
 ```
+
+The linter is a different kind of tool from everything else here: the corpus and
+adapters check whether an implementation *decodes* a shape correctly, which needs
+a real input to run against. The linter checks an indexer's *source code* for
+patterns known to cause ingestion bugs, which needs no corpus at all — see
+`linter/README.md`.
 
 ## Why a manifest, not just XDR files
 

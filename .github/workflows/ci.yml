@@ -29,6 +29,18 @@ jobs:
           gofmt -l . | (! grep .)
           go vet ./...
           go test ./...
+  linter:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: linter }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: linter/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint-self
+      - run: npm test
   detection:
     runs-on: ubuntu-latest
     steps:

@@ -36,9 +36,22 @@ a merged PR; see the linked issue for detail.
       implementation) — blocked on getting `pip` installed; not done yet
 - [ ] Java adapter — needs a JDK, not available in this environment yet
 
+## Linter
+
+- [x] `missing-depth-cap`: an ESLint rule flagging a function that recurses on
+      an `ScVal` or authorization-tree-shaped parameter with no depth/size
+      guard. Real tests, including a case the first implementation actually
+      missed (recursion via `.flatMap(fn)`, not just `fn(x)` — caught by
+      testing, then fixed). See `linter/README.md`.
+- [ ] `trusting-unvalidated-fields`: needs a concrete allow-list design (which
+      fields `stellar-core` validates vs. passes through) before a rule can be
+      precise rather than guessing
+- [ ] `participants-from-envelope`: needs recognizable call patterns from a
+      real indexer codebase to scope against, not a guessed shape
+- [ ] Publish `linter/` to npm (currently install-from-source only)
+
 ## Later
 
 - [ ] Indexer replay harness (Galexie-style ledger file input)
-- [ ] Linter: trusting unvalidated fields, missing depth/size caps, participants-from-envelope
 - [ ] Indexer-hardening guide, publishable on developers.stellar.org
 - [ ] Per-CAP coverage manifest

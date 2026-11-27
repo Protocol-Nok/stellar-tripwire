@@ -13,6 +13,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the JS adapter: `scripts/prove-detection-go.sh`, wired into CI as
   `detection-go`. Two checks report honestly as `unsupported` where the Go
   SDK's API has no equivalent surface — see `adapters/go/README.md`.
+- `linter/`: `@protocol-nok/eslint-plugin-stellar-ingestion`, an ESLint
+  plugin with one rule so far, `missing-depth-cap` (flags recursion on an
+  `ScVal` or authorization-tree-shaped parameter with no depth/size guard).
+  Not yet published to npm; install from source (see `linter/README.md`).
 
 ## [0.1.4]
 

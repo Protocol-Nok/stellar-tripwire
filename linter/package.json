@@ -1,0 +1,49 @@
+{
+  "name": "@protocol-nok/eslint-plugin-stellar-ingestion",
+  "version": "0.1.0",
+  "description": "ESLint rules catching ingestion mistakes that have broken real Stellar indexers",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist-test/test/*.test.js",
+    "pretest": "tsc -p tsconfig.test.json",
+    "lint-self": "eslint src --ext .ts"
+  },
+  "peerDependencies": {
+    "eslint": ">=9"
+  },
+  "dependencies": {
+    "@typescript-eslint/utils": "8.74.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.11",
+    "@typescript-eslint/parser": "8.74.0",
+    "@typescript-eslint/rule-tester": "8.74.0",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.74.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Protocol-Nok/stellar-tripwire",
+    "directory": "linter"
+  },
+  "bugs": "https://github.com/Protocol-Nok/stellar-tripwire/issues",
+  "homepage": "https://github.com/Protocol-Nok/stellar-tripwire/tree/main/linter",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "stellar",
+    "soroban",
+    "eslint-plugin"
+  ]
+}

@@ -9,7 +9,7 @@
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. Two adapters (JavaScript, Go), five corpus entries (one captured from a real ledger, four synthetic), six check kinds. The indexer replay harness, the linter and the Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
+> Status: early. Two adapters (JavaScript, Go), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, and the first of three planned linter rules. The indexer replay harness and the Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
@@ -39,6 +39,16 @@ rejecting the same pool-asset-order shape JS got wrong. Fixed in `v0.7.2`
 `scripts/prove-detection-go.sh` proves it the same way. It also reports two
 checks as honestly `unsupported` where the Go SDK's API design has no
 equivalent surface to test — see [adapters/go/README.md](adapters/go/README.md).
+
+## Linter
+
+The RFP this project answers also asks for a linter catching three ingestion
+mistakes. [`linter/`](linter) is an ESLint plugin covering the first one —
+missing depth/size caps on recursive structures — tested against a shape
+modeled on the real wallet-backend ingestion bugs this corpus is built from.
+The other two (trusting unvalidated fields; deriving participants from the
+envelope instead of the meta) are not started; see
+[`linter/README.md`](linter/README.md#status) for why, honestly.
 
 ## Try it
 
