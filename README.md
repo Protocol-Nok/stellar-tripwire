@@ -1,10 +1,15 @@
 # stellar-tripwire
 
+[![CI](https://github.com/Protocol-Nok/stellar-tripwire/actions/workflows/ci.yml/badge.svg)](https://github.com/Protocol-Nok/stellar-tripwire/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
 **Replays rare-but-valid Stellar ledger shapes through SDKs and indexers, and reports where they disagree with the network and with each other.**
+
+[Corpus](https://github.com/Protocol-Nok/stellar-tripwire-corpus) | [GitHub Action](https://github.com/Protocol-Nok/stellar-tripwire-action) | [Adapter protocol](docs/adapter-protocol.md) | [Check kinds](docs/checks.md)
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. One adapter (JavaScript), four corpus entries, six check kinds. The indexer replay harness, the linter and the Go, Python and Java adapters are not built yet; see [Roadmap](#roadmap).
+> Status: early. One adapter (JavaScript), four corpus entries, six check kinds. The indexer replay harness, the linter and the Go, Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
@@ -45,14 +50,8 @@ Tripwire does something different: it runs the same inputs through several indep
 
 ## Roadmap
 
-- [ ] Adapters: Go, Python, Rust SDK, Java
-- [ ] Captured entries from testnet and mainnet history, with ledger provenance
-- [ ] Replay harness that feeds the corpus to an indexer through Galexie-style ledger files
-- [ ] Linter for three ingestion mistakes: trusting unvalidated fields, missing depth caps, deriving participants from the envelope
-- [ ] Indexer-hardening guide
-- [ ] Per-CAP coverage manifest and a published divergence matrix
-
-Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+See [ROADMAP.md](ROADMAP.md) for what's done and what's next. Contributions are
+welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
