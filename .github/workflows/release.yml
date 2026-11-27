@@ -48,7 +48,12 @@ jobs:
           Copy-Item target/${{ matrix.target }}/release/tripwire.exe $name/
           Copy-Item README.md,LICENSE $name/
           Compress-Archive -Path $name -DestinationPath "$name.zip"
-          (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower() + "  $name.zip" | Out-File -Encoding ascii "$name.zip.sha256"
+          # Out-File writes CRLF, which leaves a trailing \r in the filename field
+          # when `sha256sum -c` reads it back under Git Bash (it looks for a file
+          # literally named "...zip\r" and fails). WriteAllText with an explicit
+          # "`n" writes a pure LF line instead, matching the unix step above.
+          $hash = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower()
+          [System.IO.File]::WriteAllText("$name.zip.sha256", "$hash  $name.zip`n")
       - uses: actions/upload-artifact@v4
         with:
           name: tripwire-${{ matrix.target }}
