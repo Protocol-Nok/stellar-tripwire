@@ -3,9 +3,17 @@ updates:
   - package-ecosystem: cargo
     directory: /
     schedule: { interval: weekly }
+    # heapless and stellar-strkey are young, actively-breaking 0.x/1.x crates; a major
+    # bump here has already broken the build twice (see closed PRs #6, #8). Patch and
+    # minor bumps still come through automatically.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: npm
     directory: /adapters/js
     schedule: { interval: weekly }
+    # deliberately NOT ignoring major here: the JS adapter should track the latest
+    # @stellar/stellar-sdk release, since that's the implementation we test against.
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
