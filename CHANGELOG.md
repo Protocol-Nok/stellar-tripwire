@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Go adapter for `github.com/stellar/go-stellar-sdk` (`adapters/go`), the
+  actively maintained Go SDK module (`github.com/stellar/go` is deprecated).
+  Catches a real historical bug: `v0.7.1`'s `xdr.NewPoolId` ordered assets by
+  strkey text instead of raw bytes, the same class of bug as
+  js-stellar-sdk#1766, fixed in `v0.7.2` (PR #5974). Proven the same way as
+  the JS adapter: `scripts/prove-detection-go.sh`, wired into CI as
+  `detection-go`. Two checks report honestly as `unsupported` where the Go
+  SDK's API has no equivalent surface — see `adapters/go/README.md`.
+
+## [0.1.4]
+
+### Added
 - First captured corpus entry: `captured-testnet-signed-payload-signer`, a real
   CAP-40 signed-payload signer from Stellar testnet (ledger 4437357, the exact
   ledger wallet-backend#716 names), checked in verbatim. See ADR 0003.

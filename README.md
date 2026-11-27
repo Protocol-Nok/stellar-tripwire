@@ -9,7 +9,7 @@
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. One adapter (JavaScript), five corpus entries (one captured from a real ledger, four synthetic), six check kinds. The indexer replay harness, the linter and the Go, Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
+> Status: early. Two adapters (JavaScript, Go), five corpus entries (one captured from a real ledger, four synthetic), six check kinds. The indexer replay harness, the linter and the Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
@@ -30,6 +30,15 @@ real transaction from Stellar testnet (ledger 4437357, the exact ledger
 already containing this shape), checked in verbatim. It currently passes against
 both SDK releases above; see [ADR 0003](docs/adr/0003-captured-entry-provenance.md)
 for how captured entries are sourced and verified.
+
+The [Go adapter](adapters/go) independently confirms a different real bug of the
+same class: [`github.com/stellar/go-stellar-sdk`](https://github.com/stellar/go-stellar-sdk)`@v0.7.1`'s
+`xdr.NewPoolId` ordered assets by strkey text instead of raw bytes, wrongly
+rejecting the same pool-asset-order shape JS got wrong. Fixed in `v0.7.2`
+([PR #5974](https://github.com/stellar/go-stellar-sdk/pull/5974));
+`scripts/prove-detection-go.sh` proves it the same way. It also reports two
+checks as honestly `unsupported` where the Go SDK's API design has no
+equivalent surface to test — see [adapters/go/README.md](adapters/go/README.md).
 
 ## Try it
 

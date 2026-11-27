@@ -22,10 +22,16 @@ a merged PR; see the linked issue for detail.
       the exact ledger wallet-backend#716 names. See ADR 0003.
 - [ ] More captured entries: muxed accounts and the pool-issuer-order shape are
       still synthetic only
+- [x] Go adapter for `github.com/stellar/go-stellar-sdk` (the actively
+      maintained module; `github.com/stellar/go` is deprecated). Catches a
+      real historical bug (`v0.7.1`'s `xdr.NewPoolId`, same class as
+      js-stellar-sdk#1766), proven the same way as the JS adapter
+      (`scripts/prove-detection-go.sh`). Two checks are honestly
+      `unsupported` — the SDK's API has no surface to test them; see
+      `adapters/go/README.md`.
 - [ ] Rust SDK (`soroban-sdk` / `stellar-xdr`) adapter — needs a second,
       independent Rust implementation to compare against; none identified yet
       (the obvious ones share the same `stellar-xdr` crate the generator uses)
-- [ ] Go adapter — needs a Go toolchain, not available in this environment yet
 - [ ] Python adapter (`stellar-sdk` on PyPI, a genuinely independent XDR
       implementation) — blocked on getting `pip` installed; not done yet
 - [ ] Java adapter — needs a JDK, not available in this environment yet

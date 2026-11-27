@@ -1,3 +1,4 @@
 /target
 node_modules/
 *.log
+adapters/go/tripwire-go-adapter
