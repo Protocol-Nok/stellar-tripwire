@@ -34,7 +34,10 @@ enum Command {
     Run {
         dir: PathBuf,
         /// Adapter command and its arguments. The corpus directory is appended last.
-        #[arg(long, required = true, num_args = 1.., allow_hyphen_values = true)]
+        /// Stops consuming values at the next flag, so `--json` and `--adapter` can
+        /// come in either order; an adapter command that itself needs a flag-shaped
+        /// argument isn't supported today.
+        #[arg(long, required = true, num_args = 1..)]
         adapter: Vec<String>,
         /// Print the report as JSON instead of text.
         #[arg(long)]

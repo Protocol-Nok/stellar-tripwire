@@ -4,6 +4,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.2]
+
+### Fixed
+- `tripwire run <dir> --adapter <cmd> --json` silently swallowed `--json` into
+  the adapter command instead of parsing it as a flag, because `--adapter` was
+  defined with `allow_hyphen_values(true)`. The adapter then received `--json`
+  as its corpus-directory argument and crashed. Found by
+  stellar-tripwire-action's own CI running the exact invocation its README
+  documents. `--json` and `--adapter` now parse correctly in either order;
+  regression-tested in `crates/tripwire-cli/tests/cli.rs`, which fails against
+  the old code and passes against the fix (verified both ways before this was
+  committed, not just after).
+
 ## [0.1.1] - first published release
 
 ### Added
