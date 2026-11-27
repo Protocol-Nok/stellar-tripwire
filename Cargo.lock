@@ -924,7 +924,7 @@ name = "tripwire-corpus"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "heapless 0.8.0",
+ "heapless 0.9.3",
  "hex",
  "serde",
  "serde_json",
