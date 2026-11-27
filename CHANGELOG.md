@@ -4,6 +4,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.3]
+
+### Fixed
+- The Windows release asset's `.sha256` sidecar had a trailing `\r` in its
+  filename field (PowerShell's `Out-File` writes CRLF), so `sha256sum -c`
+  under Git Bash failed with "No such file or directory" looking for a file
+  literally named `...zip\r`. Found by stellar-tripwire-action's own CI on
+  its first real Windows run. Fixed by writing the sidecar with an explicit
+  LF via `[System.IO.File]::WriteAllText`, matching the Unix step.
+
 ## [0.1.2]
 
 ### Fixed
@@ -32,13 +42,3 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   finished in under 5, so the release job (which needed all four) never ran.
   No release was ever published at that tag. Fixed by dropping that target
   (see `ROADMAP.md`) and publishing `v0.1.1` instead.
-
-## [0.1.3]
-
-### Fixed
-- The Windows release asset's `.sha256` sidecar had a trailing `\r` in its
-  filename field (PowerShell's `Out-File` writes CRLF), so `sha256sum -c`
-  under Git Bash failed with "No such file or directory" looking for a file
-  literally named `...zip\r`. Found by stellar-tripwire-action's own CI on
-  its first real Windows run. Fixed by writing the sidecar with an explicit
-  LF via `[System.IO.File]::WriteAllText`, matching the Unix step.
