@@ -17,10 +17,18 @@ a merged PR; see the linked issue for detail.
 
 ## Next
 
-- [ ] Rust SDK (`soroban-sdk` / `stellar-xdr`) adapter
-- [ ] Go adapter
-- [ ] Captured entries (real testnet/mainnet ledger history, with provenance)
-- [ ] Python and Java adapters
+- [x] Captured entries (real testnet/mainnet ledger history, with provenance):
+      one so far — a real CAP-40 signed-payload signer at testnet ledger 4437357,
+      the exact ledger wallet-backend#716 names. See ADR 0003.
+- [ ] More captured entries: muxed accounts and the pool-issuer-order shape are
+      still synthetic only
+- [ ] Rust SDK (`soroban-sdk` / `stellar-xdr`) adapter — needs a second,
+      independent Rust implementation to compare against; none identified yet
+      (the obvious ones share the same `stellar-xdr` crate the generator uses)
+- [ ] Go adapter — needs a Go toolchain, not available in this environment yet
+- [ ] Python adapter (`stellar-sdk` on PyPI, a genuinely independent XDR
+      implementation) — blocked on getting `pip` installed; not done yet
+- [ ] Java adapter — needs a JDK, not available in this environment yet
 
 ## Later
 

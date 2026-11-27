@@ -4,6 +4,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- First captured corpus entry: `captured-testnet-signed-payload-signer`, a real
+  CAP-40 signed-payload signer from Stellar testnet (ledger 4437357, the exact
+  ledger wallet-backend#716 names), checked in verbatim. See ADR 0003.
+
 ## [0.1.3]
 
 ### Fixed

@@ -66,6 +66,34 @@ fn built(
     sightings: &[&str],
     checks: Vec<Check>,
 ) -> Built {
+    built_with_source(
+        id,
+        title,
+        cap,
+        xdr_type,
+        bytes,
+        SourceKind::Synthetic,
+        detail,
+        sightings,
+        checks,
+    )
+}
+
+/// As `built`, but for an entry taken verbatim from a real ledger rather than
+/// constructed from the official types. `detail` should say exactly where it came
+/// from: network, ledger, transaction hash, and how it was captured.
+#[allow(clippy::too_many_arguments)]
+fn built_with_source(
+    id: &str,
+    title: &str,
+    cap: Option<&str>,
+    xdr_type: &str,
+    bytes: Vec<u8>,
+    kind: SourceKind,
+    detail: &str,
+    sightings: &[&str],
+    checks: Vec<Check>,
+) -> Built {
     Built {
         entry: Entry {
             id: id.to_string(),
@@ -75,7 +103,7 @@ fn built(
             file: format!("entries/{id}.xdr"),
             sha256: sha256_hex(&bytes),
             source: Source {
-                kind: SourceKind::Synthetic,
+                kind,
                 detail: detail.to_string(),
             },
             sightings: sightings.iter().map(|s| s.to_string()).collect(),
@@ -241,6 +269,36 @@ fn signed_payload_signer() -> Result<Built> {
     ))
 }
 
+/// A real CAP-40 signed-payload signer, captured from Stellar testnet. This is the
+/// exact ledger wallet-backend#716 names as already containing such a signer; the
+/// synthetic `signed_payload_signer` entry above exercises a constructed example,
+/// this one proves it is not a hypothetical shape.
+fn captured_signed_payload_signer() -> Result<Built> {
+    const RAW: &[u8] = include_bytes!("../captured/testnet-cap40-signed-payload-tx.xdr");
+    Ok(built_with_source(
+        "captured-testnet-signed-payload-signer",
+        "A real testnet SetOptions adding a CAP-40 signed-payload signer",
+        Some("CAP-0040"),
+        "TransactionEnvelope",
+        RAW.to_vec(),
+        SourceKind::Captured,
+        "Stellar testnet, ledger 4437357, tx d9f78749cd01297cd5f22c7f2c798c9eec93d56f399e1c4cc2f8977ca52b9fed, \
+         captured 2026-11-27 via GET horizon-testnet.stellar.org/transactions/<hash>, field envelope_xdr, \
+         base64-decoded and checked in verbatim",
+        &[
+            &format!("{WALLET_BACKEND}/716"),
+            &format!("{WALLET_BACKEND}/729"),
+        ],
+        vec![
+            Check::Roundtrip,
+            Check::SignedPayloadStrkey {
+                strkey: "PBCK2RYYLIYOSHBEL2FQLAVRSHRH3GP3ID476SGKBV7BEZHMQ6NSAAAAAAB55LN6AANMS"
+                    .into(),
+            },
+        ],
+    ))
+}
+
 /// All entries with their raw bytes, in a stable order.
 pub fn generate_entries() -> Result<Vec<(Entry, Vec<u8>)>> {
     let all = vec![
@@ -248,6 +306,7 @@ pub fn generate_entries() -> Result<Vec<(Entry, Vec<u8>)>> {
         muxed_ids()?,
         pool_issuer_order()?,
         signed_payload_signer()?,
+        captured_signed_payload_signer()?,
     ];
     Ok(all.into_iter().map(|b| (b.entry, b.bytes)).collect())
 }

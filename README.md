@@ -9,11 +9,11 @@
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. One adapter (JavaScript), four corpus entries, six check kinds. The indexer replay harness, the linter and the Go, Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
+> Status: early. One adapter (JavaScript), five corpus entries (one captured from a real ledger, four synthetic), six check kinds. The indexer replay harness, the linter and the Go, Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
-Four entries, each tied to a public sighting. Run against `@stellar/stellar-sdk` releases from before the fixes:
+Four synthetic entries, each tied to a public sighting. Run against `@stellar/stellar-sdk` releases from before the fixes:
 
 | Entry | Sighting | 17.2.0 (pre-fix) | 17.4.0 |
 |---|---|---|---|
@@ -23,6 +23,13 @@ Four entries, each tied to a public sighting. Run against `@stellar/stellar-sdk`
 | `set-options-signed-payload-signer` | [wallet-backend#729](https://github.com/stellar/wallet-backend/issues/729) | pass | pass |
 
 `scripts/prove-detection.sh` re-runs this in CI, so a check that stops detecting its bug fails the build.
+
+A fifth entry, `captured-testnet-signed-payload-signer`, is not constructed — it's a
+real transaction from Stellar testnet (ledger 4437357, the exact ledger
+[wallet-backend#716](https://github.com/stellar/wallet-backend/issues/716) names as
+already containing this shape), checked in verbatim. It currently passes against
+both SDK releases above; see [ADR 0003](docs/adr/0003-captured-entry-provenance.md)
+for how captured entries are sourced and verified.
 
 ## Try it
 
