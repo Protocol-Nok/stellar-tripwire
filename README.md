@@ -61,12 +61,13 @@ plainly as a real result, not a gap: see
 ## Linter
 
 The RFP this project answers also asks for a linter catching three ingestion
-mistakes. [`linter/`](linter) is an ESLint plugin covering the first one —
-missing depth/size caps on recursive structures — tested against a shape
-modeled on the real wallet-backend ingestion bugs this corpus is built from.
-The other two (trusting unvalidated fields; deriving participants from the
-envelope instead of the meta) are not started; see
-[`linter/README.md`](linter/README.md#status) for why, honestly.
+mistakes. [`linter/`](linter) is an ESLint plugin now covering two of them:
+missing depth/size caps on recursive structures, and trusting an unvalidated
+field (memo, muxed account, Soroban authorization tree) as a lookup key. The
+third — deriving participants from the envelope instead of the meta — stays
+unimplemented after a real search for a TypeScript example to scope it
+against came up empty; see [`linter/README.md`](linter/README.md#status) for
+the full account, not a shrug.
 
 ## Try it
 

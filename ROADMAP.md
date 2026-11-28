@@ -66,11 +66,22 @@ a merged PR; see the linked issue for detail.
       guard. Real tests, including a case the first implementation actually
       missed (recursion via `.flatMap(fn)`, not just `fn(x)` — caught by
       testing, then fixed). See `linter/README.md`.
-- [ ] `trusting-unvalidated-fields`: needs a concrete allow-list design (which
-      fields `stellar-core` validates vs. passes through) before a rule can be
-      precise rather than guessing
-- [ ] `participants-from-envelope`: needs recognizable call patterns from a
-      real indexer codebase to scope against, not a guessed shape
+- [x] `unvalidated-field-as-key`: flags a memo, muxed account, or Soroban
+      authorization value used directly as a lookup key (object property,
+      `Map`/`Set` method, template literal), with no canonicalization step
+      first. Built on the RFP's own named allow-list (memo, Soroban auth
+      trees, muxed account IDs), not general taint analysis. See
+      `linter/README.md` and `linter/docs/unvalidated-field-as-key.md`.
+- [ ] `participants-from-envelope`: searched GitHub code search across
+      `@stellar/stellar-sdk`-using TypeScript repos, including known Stellar
+      indexers from this project's own ecosystem research — found no
+      TypeScript example of this bug to scope a rule against. The one real
+      instance in hand, wallet-backend#731, is Go: effects are gated on the
+      operation's envelope `type`, so `InvokeHostFunction` producing a
+      trustline change via CAP-0073 silently gets no effect even though the
+      ledger meta shows it happened. Guessing a TypeScript AST shape for a
+      bug with no known TypeScript instance risked a rule nobody's code
+      matches; still deferred, now for a documented reason, not a shrug.
 - [ ] Publish `linter/` to npm (currently install-from-source only)
 
 ## Later

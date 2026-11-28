@@ -6,9 +6,9 @@ indexers. Part of [stellar-tripwire](https://github.com/Protocol-Nok/stellar-tri
 The [RFP this answers](https://stellar.gitbook.io/scf-handbook/scf-awards/scf-build/rfp-track)
 asks for a linter covering three mistakes: trusting unvalidated fields, missing
 depth/size caps on recursive structures, and deriving participants from the
-envelope instead of the meta. **This package covers the second one so far.**
-The other two are real and unimplemented — see [Status](#status) — not quietly
-dropped.
+envelope instead of the meta. **This package covers the first two.** The third
+is real and unimplemented — see [Status](#status) for why, in detail, not
+quietly dropped.
 
 ## Install
 
@@ -46,7 +46,10 @@ import stellarIngestion from '@protocol-nok/eslint-plugin-stellar-ingestion';
 export default [
   {
     plugins: { 'stellar-ingestion': stellarIngestion },
-    rules: { 'stellar-ingestion/missing-depth-cap': 'error' },
+    rules: {
+      'stellar-ingestion/missing-depth-cap': 'error',
+      'stellar-ingestion/unvalidated-field-as-key': 'error',
+    },
   },
 ];
 ```
@@ -56,40 +59,59 @@ export default [
 | Rule | What it catches |
 |---|---|
 | [`missing-depth-cap`](docs/missing-depth-cap.md) | A function that recurses on an `ScVal`, an authorization tree, or similar, with no apparent depth or size guard |
+| [`unvalidated-field-as-key`](docs/unvalidated-field-as-key.md) | A memo, muxed account, or Soroban authorization value used directly as a lookup key, with no canonicalization step first |
 
 ## Status
 
 Built and tested; not yet the full three-rule linter the RFP describes:
 
 - ✅ **Missing depth/size caps** — `missing-depth-cap`, above.
-- ❌ **Trusting unvalidated fields** — not started. The hard part is that
-  "unvalidated" is a semantic property (which fields `stellar-core` checks),
-  not a syntactic one; a precise rule likely needs a short allow-list of
-  known-unvalidated field names (memo, Soroban auth trees, muxed account IDs)
-  rather than general-purpose taint analysis.
+- ✅ **Trusting unvalidated fields** — `unvalidated-field-as-key`, above.
+  Scoped specifically to the key-usage case, built on the RFP's own named
+  allow-list (memo, Soroban auth trees, muxed account IDs) rather than
+  general-purpose taint analysis, which stayed out of scope for the same
+  reason it did for the other rule.
 - ❌ **Deriving participants from the envelope instead of the meta** — not
-  started. Needs recognizable call patterns from a real TS indexer codebase to
-  scope against; speculating a shape here risked a rule nobody's code
-  actually matches.
+  started, after a real search, not a guess skipped for convenience: GitHub
+  code search across `@stellar/stellar-sdk`-using TypeScript repositories
+  (including known Stellar indexers from this project's own ecosystem
+  research) found no TypeScript codebase with a recognizable
+  "participants"/"effects"-from-envelope pattern to scope a rule against.
+  The only concrete instance of this exact bug this project has in hand is
+  [wallet-backend#731](https://github.com/stellar/wallet-backend/issues/731),
+  written in Go: effects are gated on the operation's envelope-sourced
+  `type`, so an operation type nobody anticipated (`InvokeHostFunction`
+  producing a trustline change via CAP-0073) silently produces no effect,
+  even though the ledger meta shows the change happened. Translating that
+  into a precise, low-false-positive TypeScript AST pattern — without a real
+  TypeScript example that has the bug — would mean guessing a shape and
+  publishing a rule nobody's code is known to match. Revisit if a concrete
+  TypeScript instance turns up.
 
 See the main repo's [ROADMAP.md](https://github.com/Protocol-Nok/stellar-tripwire/blob/main/ROADMAP.md).
 
-## Known limitations of `missing-depth-cap`
+## Known limitations
 
-Documented honestly rather than left for a user to discover:
+Documented honestly rather than left for a user to discover. Shared by both
+rules:
 
-- **Name-based, not scope-based.** Recursion is detected by matching the
-  function's own name as an identifier anywhere in its body. A nested
-  function or variable that shadows that name and happens to reference it
-  would be a false positive. No scope resolution is done in v1.
-- **Syntactic typing only.** A risky parameter is recognized by its explicit
-  type annotation (`entry: SorobanAuthorizationEntry`) textually, via
-  `@typescript-eslint/parser` without a type-checked project. A destructured
-  parameter, an inferred type, or a type imported under an alias is invisible
-  to this rule.
-- **The risky-type list is configurable but has a default.** See
-  `docs/missing-depth-cap.md` for the `riskyTypes` option if your codebase
+- **Name-based, not scope-based.** `missing-depth-cap` detects recursion by
+  matching the function's own name as an identifier anywhere in its body.
+  `unvalidated-field-as-key` tracks a risky-typed name across the whole file
+  once declared. Neither does real scope resolution, so a nested function or
+  variable that shadows a tracked name, in either rule, is a false positive.
+
+- **Syntactic typing only, in both rules.** A risky parameter or variable is
+  recognized by its explicit type annotation (`entry: SorobanAuthorizationEntry`)
+  textually, via `@typescript-eslint/parser` without a type-checked project. A
+  destructured parameter, an inferred type, or a type imported under an alias
+  is invisible to both rules.
+- **The risky-type list is configurable but has a default, in both rules.**
+  See each rule's own doc page for its `riskyTypes` option if your codebase
   uses different names for these shapes.
+
+Each rule's doc page (linked above) covers what's specific to it —
+`unvalidated-field-as-key`'s one-hop-only aliasing gap, for example.
 
 ## Development
 

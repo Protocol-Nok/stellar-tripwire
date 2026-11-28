@@ -20,6 +20,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   current; two depend on `stellar-xdr` directly, one is a republish, two are
   abandoned since 2019/2021 (predate Soroban and CAP-40 entirely). Recorded
   as a real finding in `ROADMAP.md`, not left as an unexplained gap.
+- `linter/`: second rule, `unvalidated-field-as-key`, flagging a memo, muxed
+  account, or Soroban authorization value used directly as a lookup key with
+  no canonicalization first. Built on the RFP's own named allow-list of
+  unvalidated fields. The third rule (`participants-from-envelope`) stays
+  deferred after a real GitHub code search for a TypeScript instance of the
+  bug came up empty; see `linter/README.md`'s Status section.
 
 ## [0.1.5]
 

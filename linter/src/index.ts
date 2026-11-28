@@ -1,4 +1,5 @@
 import { rule as missingDepthCap } from './rules/missing-depth-cap.js';
+import { rule as unvalidatedFieldAsKey } from './rules/unvalidated-field-as-key.js';
 
 const plugin = {
   meta: {
@@ -7,6 +8,7 @@ const plugin = {
   },
   rules: {
     'missing-depth-cap': missingDepthCap,
+    'unvalidated-field-as-key': unvalidatedFieldAsKey,
   },
   configs: {},
 };
@@ -18,6 +20,7 @@ Object.assign(plugin.configs, {
     plugins: { 'stellar-ingestion': plugin },
     rules: {
       'stellar-ingestion/missing-depth-cap': 'error',
+      'stellar-ingestion/unvalidated-field-as-key': 'error',
     },
   },
 });
