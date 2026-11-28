@@ -55,4 +55,9 @@ pub enum Observation {
         account_id: String,
         signer_key: String,
     },
+    /// A trustline for `asset` (canonical `CODE:ISSUER`, or `"native"`) was created for
+    /// `account_id`. The point: this can happen via a Soroban `InvokeHostFunction` call
+    /// into the Stellar Asset Contract's `trust()` (CAP-0073), not only via a classic
+    /// `ChangeTrust` operation -- an indexer that only looks for the latter misses it.
+    TrustlineCreated { account_id: String, asset: String },
 }

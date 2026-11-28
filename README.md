@@ -9,7 +9,7 @@
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. Four adapters (JavaScript, Go, Java, Python), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, an indexer replay harness with one real entry and two reference indexers, and two of three planned linter rules. See [Roadmap](ROADMAP.md).
+> Status: early. Four adapters (JavaScript, Go, Java, Python), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, an indexer replay harness with two entries and two reference indexers, and two of three planned linter rules. See [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
@@ -68,20 +68,36 @@ the official `stellar-xdr` types, and `tripwire replay run` compares what an
 indexer adapter reports it observed against what the manifest expects
 (`pass`/`dropped`/`missing`) — see [the replay protocol](docs/replay-protocol.md).
 
-Its first entry doesn't invent a transaction: it wraps the exact same real
+Two entries so far, each tied to a distinct real `wallet-backend` sighting, so the
+harness exercises two different ways an indexer can get a ledger wrong:
+
+| Entry | Sighting | What a correct indexer must report |
+|---|---|---|
+| `captured-signed-payload-signer-ledger` | [wallet-backend#716](https://github.com/stellar/wallet-backend/issues/716) | A CAP-40 signed-payload signer added to an account, full strkey, not truncated to 32 bytes |
+| `cap73-sac-trust-ledger` | [wallet-backend#731](https://github.com/stellar/wallet-backend/issues/731) | A trustline created by a Soroban `InvokeHostFunction` call (CAP-0073 SAC `trust()`) — not a `ChangeTrust` operation, so an indexer that dispatches on envelope operation type to decide what to look for misses it entirely |
+
+The first entry doesn't invent a transaction: it wraps the exact same real
 testnet transaction `captured-testnet-signed-payload-signer` carries (same
 CAP-40 signed-payload signer, same ledger 4437357), inside a minimal real
 ledger — a test asserts the embedded transaction's signer matches byte for
-byte, not just that some transaction decodes.
+byte, not just that some transaction decodes. The second is wholly synthetic
+(placeholder contract/account IDs), but independently decodes with the
+official `stellar xdr decode` CLI as exactly what it claims: an
+`invoke_host_function` operation whose ledger meta creates a `trustline`
+entry, with no `change_trust` operation anywhere in the transaction — a test
+asserts that too, not just that the expected observation exists.
 
 [`replay/reference-js/`](replay/reference-js) ships two reference indexers
 proving the harness catches a real mistake, not just that it can print a
-report: `good-indexer.mjs` reports the signer correctly, and
-`broken-indexer.mjs` reproduces [wallet-backend#716](https://github.com/stellar/wallet-backend/issues/716)'s
-exact bug — it stores/reports only the signer's 32-byte `ed25519` portion
-and silently drops the payload, as a fixed-size column would.
+report: `good-indexer.mjs` derives both facts from the ledger meta's entry
+changes alone, never the envelope's operation type, and reports both
+correctly; `broken-indexer.mjs` reproduces both bugs at once — it truncates
+the CAP-40 signer to 32 bytes exactly as #716 described, and only looks for
+a trustline change under a `ChangeTrust` operation's own code path, exactly
+as #731 described, so it misses the one created via `InvokeHostFunction`.
 `scripts/prove-detection-replay.sh` runs both in CI (`detection-replay`) and
-requires the correct one to pass clean and the broken one to be caught.
+requires the correct one to pass clean and the broken one to be caught —
+both of its dropped observations, not just one.
 
 ## Linter
 

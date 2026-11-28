@@ -25,6 +25,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `ed25519` portion and silently discarding its payload.
   `scripts/prove-detection-replay.sh` asserts both outcomes in CI
   (`detection-replay`).
+- Second replay entry, `cap73-sac-trust-ledger`, independent of the first
+  (wholly synthetic, not derived from the captured transaction): reproduces
+  wallet-backend#731 — a trustline created by a Soroban `InvokeHostFunction`
+  call into the Stellar Asset Contract's `trust()` (CAP-0073), which has no
+  `ChangeTrust` operation anywhere in the transaction. A test asserts the
+  operation really is `InvokeHostFunction` while the expected observation is
+  the trustline creation, so the entry actually exercises the envelope-vs-
+  meta mismatch the sighting describes, not just a shape that happens to
+  decode; cross-checked independently with the official `stellar xdr decode`
+  CLI. `good-indexer.mjs` now derives this fact from the entry changes alone;
+  `broken-indexer.mjs` now also reproduces #731 by dispatching on the
+  envelope's operation type (only ever looking for a trustline change under
+  `ChangeTrust`), alongside its existing CAP-40 truncation bug.
+  `scripts/prove-detection-replay.sh` asserts both of its drops.
 - Python adapter for `stellar-sdk` (`adapters/python`), a genuinely
   independent pure-Python XDR implementation. Finds no bug: every check with
   a real equivalent in this SDK passes, including the asset-ordering bug

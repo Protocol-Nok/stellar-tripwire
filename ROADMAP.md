@@ -100,9 +100,22 @@ a merged PR; see the linked issue for detail.
       correct, one reproducing wallet-backend#716's exact bug (dropping a
       signed-payload signer's payload); `scripts/prove-detection-replay.sh`
       asserts both in CI. See `docs/replay-protocol.md`.
-- [ ] A second replay entry not derived from the same captured transaction
-      (e.g. a muxed-account or CAP-73 trust-effect shape) — the harness
-      currently has one real entry, proven to work, but only one
+- [x] Second replay entry, independent of the captured transaction:
+      `cap73-sac-trust-ledger`, a wholly synthetic ledger reproducing
+      wallet-backend#731 — a trustline created by a Soroban
+      `InvokeHostFunction` call into the Stellar Asset Contract's `trust()`
+      (CAP-0073), not a `ChangeTrust` operation. A test asserts the
+      operation really is `InvokeHostFunction` (no `ChangeTrust` anywhere)
+      while the expected observation is a trustline created, proving the
+      entry tests the exact envelope-vs-meta mismatch the sighting
+      describes; independently cross-checked with the official `stellar
+      xdr decode` CLI. Both reference indexers updated: the correct one
+      derives the trustline fact from entry changes alone, the broken one
+      now reproduces #731 too (dispatches on envelope operation type,
+      so it only ever looks for a trustline change under `ChangeTrust`
+      and misses the one from `InvokeHostFunction`) alongside its existing
+      CAP-40 bug. `scripts/prove-detection-replay.sh` asserts both of the
+      broken indexer's drops, not just one.
 - [x] Indexer-hardening guide, publishable on developers.stellar.org (after
       the core/platform-engineer review the RFP itself asks for):
       `docs/indexer-hardening-guide.md`. Every specific claim sourced —

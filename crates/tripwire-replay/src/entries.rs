@@ -2,15 +2,19 @@
 
 use anyhow::{Context, Result, bail};
 use stellar_xdr::{
-    AccountEntry, AccountEntryExt, AccountId, ExtensionPoint, GeneralizedTransactionSet, Hash,
-    LedgerCloseMeta, LedgerCloseMetaExt, LedgerCloseMetaV1, LedgerEntry, LedgerEntryChange,
-    LedgerEntryChanges, LedgerEntryData, LedgerEntryExt, LedgerHeader, LedgerHeaderExt,
-    LedgerHeaderHistoryEntry, LedgerHeaderHistoryEntryExt, Limits, MuxedAccount, OperationBody,
-    OperationMeta, OperationResult, OperationResultTr, PublicKey, ReadXdr, SequenceNumber,
-    SetOptionsResult, Signer, StellarValue, StellarValueExt, String32, Thresholds, TimePoint,
-    TransactionEnvelope, TransactionMeta, TransactionMetaV3, TransactionPhase, TransactionResult,
-    TransactionResultExt, TransactionResultMeta, TransactionResultPair, TransactionResultResult,
-    TransactionSetV1, TxSetComponent, TxSetComponentTxsMaybeDiscountedFee, Uint256, VecM, WriteXdr,
+    AccountEntry, AccountEntryExt, AccountId, AlphaNum4, AssetCode4, ContractId, ExtensionPoint,
+    GeneralizedTransactionSet, Hash, HostFunction, InvokeContractArgs, InvokeHostFunctionOp,
+    InvokeHostFunctionResult, LedgerCloseMeta, LedgerCloseMetaExt, LedgerCloseMetaV1, LedgerEntry,
+    LedgerEntryChange, LedgerEntryChanges, LedgerEntryData, LedgerEntryExt, LedgerHeader,
+    LedgerHeaderExt, LedgerHeaderHistoryEntry, LedgerHeaderHistoryEntryExt, Limits, Memo,
+    MuxedAccount, Operation, OperationBody, OperationMeta, OperationResult, OperationResultTr,
+    Preconditions, PublicKey, ReadXdr, ScAddress, ScSymbol, SequenceNumber, SetOptionsResult,
+    Signer, StellarValue, StellarValueExt, String32, Thresholds, TimePoint, Transaction,
+    TransactionEnvelope, TransactionExt, TransactionMeta, TransactionMetaV3, TransactionPhase,
+    TransactionResult, TransactionResultExt, TransactionResultMeta, TransactionResultPair,
+    TransactionResultResult, TransactionSetV1, TransactionV1Envelope, TrustLineAsset,
+    TrustLineEntry, TrustLineEntryExt, TxSetComponent, TxSetComponentTxsMaybeDiscountedFee,
+    Uint256, VecM, WriteXdr,
 };
 
 use crate::manifest::{Observation, ReplayEntry, Source, SourceKind};
@@ -57,6 +61,7 @@ fn minimal_ledger(
     ledger_seq: u32,
     tx: &TransactionEnvelope,
     entry_changes: Vec<LedgerEntryChange>,
+    op_result: OperationResultTr,
 ) -> Result<LedgerCloseMeta> {
     let tx_hash = zero_hash(); // not a real transaction hash; nothing here checks it
 
@@ -86,8 +91,7 @@ fn minimal_ledger(
         result: TransactionResult {
             fee_charged: 100,
             result: TransactionResultResult::TxSuccess(VecM::try_from(vec![
-                // A single no-op-shaped success result; the harness doesn't check this.
-                OperationResult::OpInner(OperationResultTr::SetOptions(SetOptionsResult::Success)),
+                OperationResult::OpInner(op_result),
             ])?),
             ext: TransactionResultExt::V0,
         },
@@ -205,7 +209,12 @@ fn captured_signed_payload_signer_ledger() -> Result<(ReplayEntry, Vec<u8>)> {
         }),
     ];
 
-    let ledger = minimal_ledger(2, &tx, changes)?;
+    let ledger = minimal_ledger(
+        2,
+        &tx,
+        changes,
+        OperationResultTr::SetOptions(SetOptionsResult::Success),
+    )?;
     let bytes = ledger.to_xdr(Limits::none())?;
 
     let entry = ReplayEntry {
@@ -237,6 +246,110 @@ fn captured_signed_payload_signer_ledger() -> Result<(ReplayEntry, Vec<u8>)> {
     Ok((entry, bytes))
 }
 
+/// A 32-byte key whose first byte is `first` and the rest a fixed fill -- not a valid
+/// curve point on purpose. See `tripwire-corpus`'s identical helper for why that's fine.
+fn synthetic_key(first: u8, fill: u8) -> Uint256 {
+    let mut b = [fill; 32];
+    b[0] = first;
+    Uint256(b)
+}
+
+fn synthetic_account_id(k: Uint256) -> AccountId {
+    AccountId(PublicKey::PublicKeyTypeEd25519(k))
+}
+
+/// A wholly synthetic ledger: a Soroban `InvokeHostFunction` call into a contract's
+/// `trust` entry point (the Stellar Asset Contract's `trust()`, introduced by CAP-0073)
+/// creates a trustline for the calling account -- the ledger-entry change a correct
+/// `stellar-core` produces, with no `ChangeTrust` operation anywhere in the transaction.
+/// An indexer that only looks for trustline changes under a `ChangeTrust` operation type
+/// misses this one entirely; see wallet-backend#731.
+fn cap73_sac_trust_ledger() -> Result<(ReplayEntry, Vec<u8>)> {
+    let holder_key = synthetic_key(0x11, 0x11);
+    let holder = synthetic_account_id(holder_key.clone());
+    let issuer = synthetic_account_id(synthetic_key(0x22, 0x22));
+    let contract = ContractId(Hash([0x33; 32]));
+
+    let asset = TrustLineAsset::CreditAlphanum4(AlphaNum4 {
+        asset_code: AssetCode4(*b"USD\0"),
+        issuer: issuer.clone(),
+    });
+
+    let op = Operation {
+        source_account: None,
+        body: OperationBody::InvokeHostFunction(InvokeHostFunctionOp {
+            host_function: HostFunction::InvokeContract(InvokeContractArgs {
+                contract_address: ScAddress::Contract(contract),
+                function_name: ScSymbol("trust".parse()?),
+                args: VecM::default(),
+            }),
+            auth: VecM::default(),
+        }),
+    };
+
+    let tx = TransactionEnvelope::Tx(TransactionV1Envelope {
+        tx: Transaction {
+            source_account: MuxedAccount::Ed25519(holder_key),
+            fee: 100,
+            seq_num: SequenceNumber(1),
+            cond: Preconditions::None,
+            memo: Memo::None,
+            operations: VecM::try_from(vec![op])?,
+            ext: TransactionExt::V0,
+        },
+        signatures: VecM::default(),
+    });
+
+    let trustline = TrustLineEntry {
+        account_id: holder.clone(),
+        asset,
+        balance: 0,
+        limit: i64::MAX,
+        flags: 1, // AUTHORIZED_FLAG -- the SAC authorizes what it creates
+        ext: TrustLineEntryExt::V0,
+    };
+
+    let changes = vec![LedgerEntryChange::Created(LedgerEntry {
+        last_modified_ledger_seq: 3,
+        data: LedgerEntryData::Trustline(trustline),
+        ext: LedgerEntryExt::V0,
+    })];
+
+    let ledger = minimal_ledger(
+        3,
+        &tx,
+        changes,
+        OperationResultTr::InvokeHostFunction(InvokeHostFunctionResult::Success(zero_hash())),
+    )?;
+    let bytes = ledger.to_xdr(Limits::none())?;
+
+    let entry = ReplayEntry {
+        id: "cap73-sac-trust-ledger".to_string(),
+        title: "A trustline created by a Soroban InvokeHostFunction call (CAP-0073 SAC \
+                trust()), not a ChangeTrust operation"
+            .to_string(),
+        cap: Some("CAP-0073".to_string()),
+        file: "entries/cap73-sac-trust-ledger.xdr".to_string(),
+        sha256: sha256_hex(&bytes),
+        source: Source {
+            kind: SourceKind::Synthetic,
+            detail: "Everything here is constructed: a minimal InvokeHostFunction operation \
+                     calling a contract's trust function, and the trustline ledger-entry \
+                     change a correct stellar-core would have produced from it. The contract \
+                     address and the issuer/holder accounts are placeholders -- this \
+                     reproduces wallet-backend#731's shape structurally, not byte for byte."
+                .to_string(),
+        },
+        sightings: vec![format!("{WALLET_BACKEND}/731")],
+        observations: vec![Observation::TrustlineCreated {
+            account_id: encode_account_id(&holder)?,
+            asset: format!("USD:{}", encode_account_id(&issuer)?),
+        }],
+    };
+
+    Ok((entry, bytes))
+}
+
 fn encode_account_id(id: &AccountId) -> Result<String> {
     let PublicKey::PublicKeyTypeEd25519(Uint256(bytes)) = &id.0;
     Ok(stellar_strkey::ed25519::PublicKey(*bytes)
@@ -245,5 +358,8 @@ fn encode_account_id(id: &AccountId) -> Result<String> {
 }
 
 pub fn generate_replay_entries() -> Result<Vec<(ReplayEntry, Vec<u8>)>> {
-    Ok(vec![captured_signed_payload_signer_ledger()?])
+    Ok(vec![
+        captured_signed_payload_signer_ledger()?,
+        cap73_sac_trust_ledger()?,
+    ])
 }

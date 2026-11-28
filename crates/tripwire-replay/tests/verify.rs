@@ -93,5 +93,48 @@ fn the_real_captured_transaction_is_actually_embedded() {
         tripwire_replay::Observation::SignerAdded { signer_key, .. } => {
             assert_eq!(*signer_key, expected_strkey);
         }
+        other => panic!("expected a SignerAdded observation, got {other:?}"),
+    }
+}
+
+#[test]
+fn the_cap73_entry_reports_a_trustline_created_by_invoke_host_function() {
+    // Not just "some ledger decodes" -- the entry's one operation really is
+    // InvokeHostFunction (no ChangeTrust anywhere), yet the expected observation is a
+    // trustline created, proving the harness tests exactly the envelope-vs-meta mismatch
+    // wallet-backend#731 describes.
+    use stellar_xdr::{LedgerCloseMeta, Limits, OperationBody, ReadXdr, TransactionEnvelope};
+
+    let (entry, bytes) = generate_replay_entries()
+        .unwrap()
+        .into_iter()
+        .find(|(e, _)| e.id == "cap73-sac-trust-ledger")
+        .unwrap();
+    let ledger = LedgerCloseMeta::from_xdr(&bytes, Limits::none()).unwrap();
+    let LedgerCloseMeta::V1(v1) = ledger else {
+        panic!("expected V1")
+    };
+    let stellar_xdr::GeneralizedTransactionSet::V1(set) = v1.tx_set;
+    let stellar_xdr::TransactionPhase::V0(components) = &set.phases[0] else {
+        panic!("expected a V0 phase")
+    };
+    let stellar_xdr::TxSetComponent::TxsetCompTxsMaybeDiscountedFee(c) = &components[0];
+    let TransactionEnvelope::Tx(tx) = &c.txs[0] else {
+        panic!("expected a v1 envelope")
+    };
+    assert!(
+        matches!(
+            tx.tx.operations[0].body,
+            OperationBody::InvokeHostFunction(_)
+        ),
+        "expected an InvokeHostFunction operation"
+    );
+
+    assert_eq!(entry.observations.len(), 1);
+    match &entry.observations[0] {
+        tripwire_replay::Observation::TrustlineCreated { asset, .. } => {
+            assert!(asset.starts_with("USD:G"), "unexpected asset: {asset}");
+        }
+        other => panic!("expected a TrustlineCreated observation, got {other:?}"),
     }
 }
