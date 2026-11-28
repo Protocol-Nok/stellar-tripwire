@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `docs/cap-coverage.md`: a per-CAP coverage audit, fetched from the real
+  `stellar/stellar-protocol` CAP index rather than worked from memory. Five
+  CAPs have real corpus/replay coverage; 18 more are real, read-in-depth
+  gaps (several touching this project's own code, e.g. `evicted_keys` and
+  `SorobanAuthorizationEntry` are fields tripwire-replay already sets,
+  always empty); the rest are scoped out with a stated reason or flagged as
+  not yet individually read. Caught two title-vs-content surprises along
+  the way: CAP-0087's title suggests a new signer type but its XDR diff is
+  only a cost-accounting enum addition, and CAP-0046-06 (the SAC interface
+  CAP-0073 extends) carries no XDR of its own at all.
+  `scripts/check-cap-coverage.sh` checks the "Covered" table's claimed
+  entry IDs against what `tripwire generate`/`replay generate` actually
+  produce, wired into CI so a renamed or removed entry fails the build.
 - Indexer replay harness (`tripwire-replay`, `tripwire replay generate|verify|run`):
   the RFP's other requested piece, distinct from the SDK-level `run`. An
   indexer adapter reads a corpus of whole, synthetic-but-structurally-valid

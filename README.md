@@ -5,7 +5,7 @@
 
 **Replays rare-but-valid Stellar ledger shapes through SDKs and indexers, and reports where they disagree with the network and with each other.**
 
-[Corpus](https://github.com/Protocol-Nok/stellar-tripwire-corpus) | [GitHub Action](https://github.com/Protocol-Nok/stellar-tripwire-action) | [Adapter protocol](docs/adapter-protocol.md) | [Check kinds](docs/checks.md) | [Replay protocol](docs/replay-protocol.md)
+[Corpus](https://github.com/Protocol-Nok/stellar-tripwire-corpus) | [GitHub Action](https://github.com/Protocol-Nok/stellar-tripwire-action) | [Adapter protocol](docs/adapter-protocol.md) | [Check kinds](docs/checks.md) | [Replay protocol](docs/replay-protocol.md) | [Per-CAP coverage](docs/cap-coverage.md)
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
@@ -118,6 +118,21 @@ validated vs. unvalidated fields, depth/size caps, deriving participants
 from the meta, and muxed/signed-payload handling — every specific claim
 sourced, marked as a draft pending the core-or-platform-engineer review the
 RFP itself asks for before this goes anywhere official.
+
+## Per-CAP coverage
+
+The hardening guide tells indexer authors to check "what changed" against
+every operation type any CAP allows to produce it — so
+[`docs/cap-coverage.md`](docs/cap-coverage.md) holds this project to the
+same standard, against itself. It's a real audit, fetched from the live
+`stellar/stellar-protocol` CAP index rather than worked from memory: 5 CAPs
+have real corpus/replay coverage, 18 more are verified, read-in-depth gaps
+(several already touching this project's own code — `evicted_keys` and
+`SorobanAuthorizationEntry` are fields `tripwire-replay` already sets,
+always empty), and the rest are scoped out with a stated reason or flagged
+as not yet individually read, not silently dropped.
+`scripts/check-cap-coverage.sh` checks the "Covered" table's claimed entry
+IDs against what the generators actually produce today, in CI.
 
 ## Try it
 

@@ -123,4 +123,17 @@ a merged PR; see the linked issue for detail.
       developer docs — with secondary (not `stellar-core`-source-verified)
       claims marked inline, exactly the kind the RFP's own review gate
       exists to catch.
-- [ ] Per-CAP coverage manifest
+- [x] Per-CAP coverage manifest: [`docs/cap-coverage.md`](docs/cap-coverage.md).
+      Fetched the real CAP list from `stellar/stellar-protocol` rather than
+      working from memory — which caught real surprises, e.g. CAP-0087's
+      title ("Host functions for ML-DSA signature verification") suggests a
+      new signer type like CAP-0040's, but its actual XDR diff is only a
+      `ContractCostType` enum addition; and CAP-0046-06 (the SAC interface
+      CAP-0073 extends) turns out to carry no XDR of its own at all. Five
+      CAPs are covered (0027, 0038, 0040, 0046-01, 0073); 18 are real,
+      read-in-depth, not-yet-covered gaps, several directly touching this
+      project's own code (e.g. `evicted_keys` and `SorobanAuthorizationEntry`
+      are already fields tripwire-replay sets, always empty, from CAP-0046-12
+      and CAP-0046-11 respectively). `scripts/check-cap-coverage.sh` checks
+      the "Covered" table's claimed entry IDs against what the generators
+      actually produce today, wired into the `rust` CI job.

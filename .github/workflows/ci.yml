@@ -22,6 +22,8 @@ jobs:
         run: |
           cargo run -q -p tripwire -- replay generate "$RUNNER_TEMP/replay-corpus"
           cargo run -q -p tripwire -- replay verify "$RUNNER_TEMP/replay-corpus" --regen
+      - name: per-CAP coverage manifest matches what the generators produce
+        run: ./scripts/check-cap-coverage.sh
   go:
     runs-on: ubuntu-latest
     steps:
