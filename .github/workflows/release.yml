@@ -54,7 +54,7 @@ jobs:
           # "`n" writes a pure LF line instead, matching the unix step above.
           $hash = (Get-FileHash "$name.zip" -Algorithm SHA256).Hash.ToLower()
           [System.IO.File]::WriteAllText("$name.zip.sha256", "$hash  $name.zip`n")
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: tripwire-${{ matrix.target }}
           path: |
