@@ -1,5 +1,6 @@
 //! `tripwire`: generate, verify and run the ledger conformance corpus.
 
+mod replay_run;
 mod run;
 
 use std::path::PathBuf;
@@ -45,6 +46,35 @@ enum Command {
         #[arg(last = true, required = true)]
         adapter: Vec<String>,
     },
+    /// The indexer replay harness: checks whether an *indexer* extracts the right facts
+    /// from a whole ledger, not whether an SDK decodes one value (that's `generate`/
+    /// `verify`/`run`, above). See docs/replay-protocol.md.
+    #[command(subcommand)]
+    Replay(ReplayCommand),
+}
+
+#[derive(Subcommand)]
+enum ReplayCommand {
+    /// Write the replay corpus (manifest.json and entries/*.xdr, one LedgerCloseMeta per
+    /// entry) into DIR.
+    Generate { dir: PathBuf },
+    /// Check that a replay corpus decodes as LedgerCloseMeta, round-trips, and matches
+    /// its manifest.
+    Verify {
+        dir: PathBuf,
+        #[arg(long)]
+        regen: bool,
+    },
+    /// Run an indexer adapter against the replay corpus.
+    ///
+    ///   tripwire replay run <dir> [--json] -- <indexer-cmd...>
+    Run {
+        dir: PathBuf,
+        #[arg(long)]
+        json: bool,
+        #[arg(last = true, required = true)]
+        adapter: Vec<String>,
+    },
 }
 
 fn main() -> ExitCode {
@@ -81,5 +111,29 @@ fn real_main() -> Result<ExitCode> {
             Ok(ExitCode::from(1))
         }
         Command::Run { dir, adapter, json } => run::run(&dir, &adapter, json),
+        Command::Replay(ReplayCommand::Generate { dir }) => {
+            let m = tripwire_replay::write_replay_corpus(&dir)?;
+            println!(
+                "wrote {} entries to {} ({})",
+                m.entries.len(),
+                dir.display(),
+                m.xdr_crate
+            );
+            Ok(ExitCode::SUCCESS)
+        }
+        Command::Replay(ReplayCommand::Verify { dir, regen }) => {
+            let findings = tripwire_replay::verify_dir(&dir, regen)?;
+            if findings.is_empty() {
+                println!("ok: replay corpus is consistent");
+                return Ok(ExitCode::SUCCESS);
+            }
+            for f in &findings {
+                println!("{}: {}", f.entry, f.message);
+            }
+            Ok(ExitCode::from(1))
+        }
+        Command::Replay(ReplayCommand::Run { dir, adapter, json }) => {
+            replay_run::run(&dir, &adapter, json)
+        }
     }
 }

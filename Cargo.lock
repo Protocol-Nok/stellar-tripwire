@@ -1041,6 +1041,7 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tripwire-corpus",
+ "tripwire-replay",
 ]
 
 [[package]]
@@ -1056,6 +1057,21 @@ dependencies = [
  "stellar-strkey 0.0.16",
  "stellar-xdr",
  "tempfile",
+]
+
+[[package]]
+name = "tripwire-replay"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "stellar-strkey 0.0.16",
+ "stellar-xdr",
+ "tempfile",
+ "tripwire-corpus",
 ]
 
 [[package]]

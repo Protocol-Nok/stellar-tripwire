@@ -9,6 +9,7 @@ rust-version.workspace = true
 
 [dependencies]
 tripwire-corpus = { path = "../tripwire-corpus" }
+tripwire-replay = { path = "../tripwire-replay" }
 anyhow.workspace = true
 clap.workspace = true
 serde.workspace = true

@@ -5,11 +5,11 @@
 
 **Replays rare-but-valid Stellar ledger shapes through SDKs and indexers, and reports where they disagree with the network and with each other.**
 
-[Corpus](https://github.com/Protocol-Nok/stellar-tripwire-corpus) | [GitHub Action](https://github.com/Protocol-Nok/stellar-tripwire-action) | [Adapter protocol](docs/adapter-protocol.md) | [Check kinds](docs/checks.md)
+[Corpus](https://github.com/Protocol-Nok/stellar-tripwire-corpus) | [GitHub Action](https://github.com/Protocol-Nok/stellar-tripwire-action) | [Adapter protocol](docs/adapter-protocol.md) | [Check kinds](docs/checks.md) | [Replay protocol](docs/replay-protocol.md)
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. Four adapters (JavaScript, Go, Java, Python), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, and the first of three planned linter rules. The indexer replay harness is not built yet; see [Roadmap](ROADMAP.md).
+> Status: early. Four adapters (JavaScript, Go, Java, Python), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, an indexer replay harness with one real entry and two reference indexers, and two of three planned linter rules. See [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
@@ -58,6 +58,31 @@ classes the other three have each gotten wrong in some version. Worth stating
 plainly as a real result, not a gap: see
 [adapters/python/README.md](adapters/python/README.md).
 
+## Indexer replay harness
+
+Everything above tests whether an SDK decodes one value correctly. The RFP
+also asks for something at the ledger level: whether an *indexer* extracts
+the right facts when it processes a whole ledger. [`tripwire-replay`](crates/tripwire-replay)
+builds minimal, structurally valid synthetic `LedgerCloseMeta` values from
+the official `stellar-xdr` types, and `tripwire replay run` compares what an
+indexer adapter reports it observed against what the manifest expects
+(`pass`/`dropped`/`missing`) — see [the replay protocol](docs/replay-protocol.md).
+
+Its first entry doesn't invent a transaction: it wraps the exact same real
+testnet transaction `captured-testnet-signed-payload-signer` carries (same
+CAP-40 signed-payload signer, same ledger 4437357), inside a minimal real
+ledger — a test asserts the embedded transaction's signer matches byte for
+byte, not just that some transaction decodes.
+
+[`replay/reference-js/`](replay/reference-js) ships two reference indexers
+proving the harness catches a real mistake, not just that it can print a
+report: `good-indexer.mjs` reports the signer correctly, and
+`broken-indexer.mjs` reproduces [wallet-backend#716](https://github.com/stellar/wallet-backend/issues/716)'s
+exact bug — it stores/reports only the signer's 32-byte `ed25519` portion
+and silently drops the payload, as a fixed-size column would.
+`scripts/prove-detection-replay.sh` runs both in CI (`detection-replay`) and
+requires the correct one to pass clean and the broken one to be caught.
+
 ## Linter
 
 The RFP this project answers also asks for a linter catching three ingestion
@@ -88,6 +113,15 @@ cargo run -p tripwire -- run corpus -- node adapters/js/adapter.mjs
 ```
 
 Test a specific SDK release by pointing `TRIPWIRE_SDK_DIR` at a directory that has it in `node_modules`.
+
+The replay harness works the same way, on whole ledgers instead of single values:
+
+```sh
+cargo run -p tripwire -- replay generate replay-corpus
+(cd replay/reference-js && npm install)
+cargo run -p tripwire -- replay run replay-corpus -- node replay/reference-js/good-indexer.mjs     # PASS
+cargo run -p tripwire -- replay run replay-corpus -- node replay/reference-js/broken-indexer.mjs   # DROP
+```
 
 ## How it works
 

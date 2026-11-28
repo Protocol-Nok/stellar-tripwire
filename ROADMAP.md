@@ -17,6 +17,8 @@ a merged PR; see the linked issue for detail.
 - [x] `tripwire run`'s adapter command moved to after `--` (was `--adapter`),
       fixing a real ambiguity discovered via the Java adapter (`java -jar`
       looks like a flag). See CHANGELOG `[Unreleased]`.
+- [x] CLI: `replay generate`, `replay verify`, `replay run` (indexer harness,
+      separate from the SDK-level `generate`/`verify`/`run` above)
 
 ## Next
 
@@ -86,13 +88,21 @@ a merged PR; see the linked issue for detail.
 
 ## Later
 
-- [ ] Indexer replay harness (Galexie-style ledger file input, or a mock
-      `getLedgers` RPC endpoint) — scoped this out before starting: it needs
-      a full, structurally valid synthetic `LedgerCloseMeta` (a
-      `GeneralizedTransactionSet`, ledger header, per-operation
-      `TransactionMeta`), a materially bigger task than any single adapter
-      built so far. Deliberately sequenced after the hardening guide rather
-      than started and left half-built.
+- [x] Indexer replay harness (`tripwire-replay`, `tripwire replay
+      generate|verify|run`): a corpus of whole, structurally valid synthetic
+      `LedgerCloseMeta` values (not single decoded values, like the
+      SDK-level corpus) that an indexer adapter reads and reports facts
+      ("observations") from, compared against the manifest's expectations.
+      The first entry wraps the same real captured testnet transaction as
+      `captured-testnet-signed-payload-signer`, inside a minimal real
+      ledger — verified by test to carry the identical signer. Two reference
+      indexers in `replay/reference-js/` prove detection end to end: one
+      correct, one reproducing wallet-backend#716's exact bug (dropping a
+      signed-payload signer's payload); `scripts/prove-detection-replay.sh`
+      asserts both in CI. See `docs/replay-protocol.md`.
+- [ ] A second replay entry not derived from the same captured transaction
+      (e.g. a muxed-account or CAP-73 trust-effect shape) — the harness
+      currently has one real entry, proven to work, but only one
 - [x] Indexer-hardening guide, publishable on developers.stellar.org (after
       the core/platform-engineer review the RFP itself asks for):
       `docs/indexer-hardening-guide.md`. Every specific claim sourced —

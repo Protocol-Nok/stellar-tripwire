@@ -2,11 +2,13 @@
 
 ```
 crates/tripwire-corpus/    generator + manifest types + verifier  (the source of truth)
-crates/tripwire-cli/       `tripwire` binary: generate | verify | run
+crates/tripwire-replay/    builds whole synthetic LedgerCloseMeta values wrapping corpus shapes
+crates/tripwire-cli/       `tripwire` binary: generate | verify | run | replay generate|verify|run
 adapters/js/               adapter: corpus -> @stellar/stellar-sdk -> results
 adapters/go/               adapter: corpus -> github.com/stellar/go-stellar-sdk -> results
 adapters/java/             adapter: corpus -> network.lightsail:stellar-sdk -> results
 adapters/python/           adapter: corpus -> stellar-sdk (PyPI) -> results
+replay/reference-js/       indexer adapters: whole ledger -> observations (one correct, one broken)
 linter/                    ESLint plugin: static checks on indexer *source*, not the corpus
 corpus/                    (generated, not committed here) the published snapshot
                             lives in stellar-tripwire-corpus
@@ -17,6 +19,10 @@ adapters check whether an implementation *decodes* a shape correctly, which need
 a real input to run against. The linter checks an indexer's *source code* for
 patterns known to cause ingestion bugs, which needs no corpus at all — see
 `linter/README.md`.
+
+The replay harness is a third kind: `tripwire-corpus`/adapters check one decoded
+*value*; `tripwire-replay` checks facts extracted from a whole *ledger*, which is
+the unit an indexer actually processes. See `docs/replay-protocol.md`.
 
 ## Why a manifest, not just XDR files
 
@@ -45,4 +51,21 @@ tripwire run <corpus> -- <adapter-cmd>
         v
   compares adapter output to each entry's `checks`, reports fail/unsupported,
   exits non-zero if anything failed
+```
+
+## Data flow for `tripwire replay run`
+
+```
+tripwire replay run <corpus> -- <indexer-cmd>
+        |
+        v
+  reads manifest.json  ---->  spawns <cmd> <corpus>  ---->  indexer decodes each
+        |                                                    entry's whole
+        |                                                    LedgerCloseMeta and
+        |                                                    reports the facts
+        |                                                    ("observations") it
+        |                                                    extracted, per ledger
+        v
+  compares reported observations to each entry's expected `observations`,
+  reports pass/dropped/missing, exits non-zero if anything was dropped or missing
 ```

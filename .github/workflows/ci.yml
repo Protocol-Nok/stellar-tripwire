@@ -18,6 +18,10 @@ jobs:
         run: |
           cargo run -q -p tripwire -- generate "$RUNNER_TEMP/corpus"
           cargo run -q -p tripwire -- verify "$RUNNER_TEMP/corpus" --regen
+      - name: replay corpus is consistent and reproducible
+        run: |
+          cargo run -q -p tripwire -- replay generate "$RUNNER_TEMP/replay-corpus"
+          cargo run -q -p tripwire -- replay verify "$RUNNER_TEMP/replay-corpus" --regen
   go:
     runs-on: ubuntu-latest
     steps:
@@ -92,3 +96,12 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: "21", cache: maven }
       - run: ./scripts/prove-detection-java.sh
+  detection-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: replay/reference-js/package-lock.json }
+      - run: ./scripts/prove-detection-replay.sh

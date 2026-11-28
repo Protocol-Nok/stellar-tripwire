@@ -1,0 +1,9 @@
+{
+  "name": "tripwire-replay-reference-js",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Reference indexer adapters for the stellar-tripwire replay harness: one correct, one with a real, documented bug",
+  "type": "module",
+  "license": "Apache-2.0",
+  "dependencies": { "@stellar/stellar-sdk": "17.4.0" }
+}

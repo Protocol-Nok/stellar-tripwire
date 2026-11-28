@@ -1,0 +1,21 @@
+[package]
+name = "tripwire-replay"
+description = "Builds minimal, structurally valid synthetic ledgers wrapping corpus shapes, for the indexer replay harness"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+tripwire-corpus = { path = "../tripwire-corpus" }
+stellar-xdr.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+hex.workspace = true
+anyhow.workspace = true
+stellar-strkey.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

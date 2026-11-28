@@ -5,6 +5,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Indexer replay harness (`tripwire-replay`, `tripwire replay generate|verify|run`):
+  the RFP's other requested piece, distinct from the SDK-level `run`. An
+  indexer adapter reads a corpus of whole, synthetic-but-structurally-valid
+  `LedgerCloseMeta` values (built from the official `stellar-xdr` types —
+  `GeneralizedTransactionSet`, `LedgerHeader`, per-operation
+  `TransactionMeta`, `LedgerEntryChange`) and reports the facts it extracted
+  per ledger; `tripwire replay run` compares that against what the manifest
+  expects (`pass`/`dropped`/`missing`). See `docs/replay-protocol.md`.
+  The first entry wraps the *same* real captured testnet transaction as
+  `captured-testnet-signed-payload-signer` (verified by test to carry the
+  identical signer, not just similar bytes) in a minimal real ledger, so the
+  replay harness is tested against real network data from its first entry,
+  not only synthetic ledgers.
+  `replay/reference-js/` ships two reference indexers proving the harness
+  actually catches a dropped fact, not just that it can print a report: one
+  correct, and one (`broken-indexer.mjs`) reproducing wallet-backend#716's
+  exact bug — storing/reporting only a signed-payload signer's 32-byte
+  `ed25519` portion and silently discarding its payload.
+  `scripts/prove-detection-replay.sh` asserts both outcomes in CI
+  (`detection-replay`).
 - Python adapter for `stellar-sdk` (`adapters/python`), a genuinely
   independent pure-Python XDR implementation. Finds no bug: every check with
   a real equivalent in this SDK passes, including the asset-ordering bug
