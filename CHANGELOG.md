@@ -4,6 +4,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.5]
+
 ### Added
 - Go adapter for `github.com/stellar/go-stellar-sdk` (`adapters/go`), the
   actively maintained Go SDK module (`github.com/stellar/go` is deprecated).
