@@ -39,11 +39,25 @@ a merged PR; see the linked issue for detail.
       [lightsail-network/java-stellar-sdk#849](https://github.com/lightsail-network/java-stellar-sdk/issues/849)
       with a verified reproduction. `scripts/prove-detection-java.sh` tracks
       it; see `adapters/java/README.md`.
-- [ ] Rust SDK (`soroban-sdk` / `stellar-xdr`) adapter — needs a second,
-      independent Rust implementation to compare against; none identified yet
-      (the obvious ones share the same `stellar-xdr` crate the generator uses)
-- [ ] Python adapter (`stellar-sdk` on PyPI, a genuinely independent XDR
-      implementation) — blocked on getting `pip` installed; not done yet
+- [x] Python adapter for `stellar-sdk` (py-stellar-base), a genuinely
+      independent pure-Python XDR implementation. Finds **no bug** — every
+      check with a real equivalent in this SDK passes, including the
+      asset-ordering class Go and Java each got wrong in some version;
+      `LiquidityPoolAsset`'s own source comments "Compare asset issuers by
+      raw key bytes, as stellar-core does," and it does. `pip`/`venv` weren't
+      preinstalled in this environment; bootstrapped from Ubuntu's own signed
+      `python3-pip` package (checksum-verified, extracted without running
+      `dpkg` or any script) rather than an unapproved remote script. See
+      `adapters/python/README.md`.
+- [ ] Rust SDK (`soroban-sdk` / `stellar-xdr`) adapter — searched crates.io
+      properly this time (4 candidates: `stellar-baselib`, `stellar-base`,
+      `substrate-stellar-xdr`, `rust-stellar-xdr`, `kuknos-xdr-tmp`). None
+      qualify: two depend on the official `stellar-xdr` crate directly, one
+      is a near-verbatim republish of its generated code (diffed to confirm),
+      and two are abandoned (2019, 2021) and predate Soroban, CAP-40 and even
+      liquidity pools. Unlike JS/Go/Java/Python, Rust's Stellar XDR ecosystem
+      is close to a single-implementation monopoly — a real finding, not a
+      gap in the search.
 
 ## Linter
 

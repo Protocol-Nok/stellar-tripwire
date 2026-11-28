@@ -6,6 +6,7 @@ crates/tripwire-cli/       `tripwire` binary: generate | verify | run
 adapters/js/               adapter: corpus -> @stellar/stellar-sdk -> results
 adapters/go/               adapter: corpus -> github.com/stellar/go-stellar-sdk -> results
 adapters/java/             adapter: corpus -> network.lightsail:stellar-sdk -> results
+adapters/python/           adapter: corpus -> stellar-sdk (PyPI) -> results
 linter/                    ESLint plugin: static checks on indexer *source*, not the corpus
 corpus/                    (generated, not committed here) the published snapshot
                             lives in stellar-tripwire-corpus

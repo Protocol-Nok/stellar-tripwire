@@ -9,7 +9,7 @@
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. Three adapters (JavaScript, Go, Java), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, and the first of three planned linter rules. The indexer replay harness and a Python adapter are not built yet; see [Roadmap](ROADMAP.md).
+> Status: early. Four adapters (JavaScript, Go, Java, Python), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, and the first of three planned linter rules. The indexer replay harness is not built yet; see [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
@@ -50,6 +50,13 @@ documented anywhere public:
 `scripts/prove-detection-java.sh` asserts the current known-bad state and is
 meant to start failing once upstream ships a fix, not pass forever — see
 [adapters/java/README.md](adapters/java/README.md).
+
+The [Python adapter](adapters/python) (`stellar-sdk` / py-stellar-base, a
+genuinely independent pure-Python implementation) currently finds **no bug** —
+every check with a real equivalent in this SDK passes, including both bug
+classes the other three have each gotten wrong in some version. Worth stating
+plainly as a real result, not a gap: see
+[adapters/python/README.md](adapters/python/README.md).
 
 ## Linter
 

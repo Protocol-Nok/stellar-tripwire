@@ -37,6 +37,18 @@ jobs:
         with: { distribution: temurin, java-version: "21", cache: maven }
       - working-directory: adapters/java
         run: mvn -B package
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: adapters/python }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python -m venv .venv
+      - run: .venv/bin/pip install -r requirements-dev.txt
+      - run: .venv/bin/ruff check .
+      - run: .venv/bin/python -m pytest -q
   linter:
     runs-on: ubuntu-latest
     defaults:

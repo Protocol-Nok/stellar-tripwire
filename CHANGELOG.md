@@ -4,6 +4,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Python adapter for `stellar-sdk` (`adapters/python`), a genuinely
+  independent pure-Python XDR implementation. Finds no bug: every check with
+  a real equivalent in this SDK passes, including the asset-ordering bug
+  class Go and Java have each gotten wrong in some version — verified
+  empirically, not assumed from reading its source. One check
+  (`muxed_id_input`) is honestly `unsupported` for a Python-specific reason:
+  the relevant parameter is type-hinted `int`, but Python doesn't enforce
+  that at runtime, so a string is accepted and only fails later with an
+  unrelated `TypeError`, not a real validation path.
+- Investigated a Rust SDK adapter properly this time: searched crates.io,
+  checked four candidates' dependency graphs and one's source against the
+  official crate's (diffed, near-identical). None are independent and
+  current; two depend on `stellar-xdr` directly, one is a republish, two are
+  abandoned since 2019/2021 (predate Soroban and CAP-40 entirely). Recorded
+  as a real finding in `ROADMAP.md`, not left as an unexplained gap.
+
 ## [0.1.5]
 
 ### Added
