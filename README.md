@@ -9,7 +9,7 @@
 
 Every application that reads the ledger decodes XDR, and rare shapes keep breaking those readers because nobody tested them. A fix lands in one SDK and never reaches the others. Tripwire turns each of those bugs into a regression test that every implementation can run.
 
-> Status: early. Two adapters (JavaScript, Go), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, and the first of three planned linter rules. The indexer replay harness and the Python and Java adapters are not built yet; see [Roadmap](ROADMAP.md).
+> Status: early. Three adapters (JavaScript, Go, Java), five corpus entries (one captured from a real ledger, four synthetic), six check kinds, and the first of three planned linter rules. The indexer replay harness and a Python adapter are not built yet; see [Roadmap](ROADMAP.md).
 
 ## What it already catches
 
@@ -40,6 +40,17 @@ rejecting the same pool-asset-order shape JS got wrong. Fixed in `v0.7.2`
 checks as honestly `unsupported` where the Go SDK's API design has no
 equivalent surface to test — see [adapters/go/README.md](adapters/go/README.md).
 
+The [Java adapter](adapters/java) found a **third** independent instance of the
+same bug class in [`network.lightsail:stellar-sdk`](https://github.com/lightsail-network/java-stellar-sdk)`@6.0.0`
+— except this one is **currently open**, not historical: `Asset.compareTo`
+orders issuers by strkey text instead of raw bytes, today, in the current
+release. Reported with a verified minimal reproduction before this was
+documented anywhere public:
+[lightsail-network/java-stellar-sdk#849](https://github.com/lightsail-network/java-stellar-sdk/issues/849).
+`scripts/prove-detection-java.sh` asserts the current known-bad state and is
+meant to start failing once upstream ships a fix, not pass forever — see
+[adapters/java/README.md](adapters/java/README.md).
+
 ## Linter
 
 The RFP this project answers also asks for a linter catching three ingestion
@@ -56,7 +67,7 @@ envelope instead of the meta) are not started; see
 cargo run -p tripwire -- generate corpus          # writes corpus/manifest.json and corpus/entries/*.xdr
 cargo run -p tripwire -- verify corpus --regen    # decodes, round-trips, and re-derives every expectation
 (cd adapters/js && npm install)
-cargo run -p tripwire -- run corpus --adapter node adapters/js/adapter.mjs
+cargo run -p tripwire -- run corpus -- node adapters/js/adapter.mjs
 ```
 
 Test a specific SDK release by pointing `TRIPWIRE_SDK_DIR` at a directory that has it in `node_modules`.

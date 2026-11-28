@@ -29,6 +29,14 @@ jobs:
           gofmt -l . | (! grep .)
           go vet ./...
           go test ./...
+  java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "21", cache: maven }
+      - working-directory: adapters/java
+        run: mvn -B package
   linter:
     runs-on: ubuntu-latest
     defaults:
@@ -59,3 +67,16 @@ jobs:
       - uses: actions/setup-go@v5
         with: { go-version: "1.27" }
       - run: ./scripts/prove-detection-go.sh
+  detection-java:
+    # Tracks a known-open upstream bug (lightsail-network/java-stellar-sdk#849)
+    # rather than comparing a historical pre-fix release to a fixed one -- see
+    # the script's own comment. Expected to start failing once that's fixed;
+    # treat that as a signal to update, not a flake to silence.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "21", cache: maven }
+      - run: ./scripts/prove-detection-java.sh

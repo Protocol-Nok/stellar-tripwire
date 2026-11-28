@@ -27,13 +27,13 @@ build_adapter() { # build_adapter <sdk-version> <output-dir>
 }
 
 build_adapter "$PRE_FIX" "$work/pre"
-pre="$("$bin" run "$work/corpus" --adapter "$work/pre/tripwire-go-adapter")" || true
+pre="$("$bin" run "$work/corpus" -- "$work/pre/tripwire-go-adapter")" || true
 echo "$pre"
 echo "$pre" | grep -q "FAIL  lp-asset-issuer-order / liquidity_pool_asset_order" \
   || { echo "NOT DETECTED on $PRE_FIX"; exit 1; }
 
 build_adapter "$FIXED" "$work/fixed"
-fixed="$("$bin" run "$work/corpus" --adapter "$work/fixed/tripwire-go-adapter")" || true
+fixed="$("$bin" run "$work/corpus" -- "$work/fixed/tripwire-go-adapter")" || true
 echo "$fixed"
 if echo "$fixed" | grep -q "FAIL"; then echo "unexpected failure on $FIXED"; exit 1; fi
 

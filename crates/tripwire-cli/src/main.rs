@@ -31,17 +31,19 @@ enum Command {
         regen: bool,
     },
     /// Run an adapter (any program that speaks the adapter protocol) against the corpus.
+    ///
+    /// The adapter command goes after `--`, so it can contain its own flags (`java -jar
+    /// x.jar`, `node --experimental-foo x.mjs`) without colliding with tripwire's own.
+    /// The corpus directory is appended as its last argument.
+    ///
+    ///   tripwire run <dir> [--json] -- <adapter-cmd...>
     Run {
         dir: PathBuf,
-        /// Adapter command and its arguments. The corpus directory is appended last.
-        /// Stops consuming values at the next flag, so `--json` and `--adapter` can
-        /// come in either order; an adapter command that itself needs a flag-shaped
-        /// argument isn't supported today.
-        #[arg(long, required = true, num_args = 1..)]
-        adapter: Vec<String>,
         /// Print the report as JSON instead of text.
         #[arg(long)]
         json: bool,
+        #[arg(last = true, required = true)]
+        adapter: Vec<String>,
     },
 }
 

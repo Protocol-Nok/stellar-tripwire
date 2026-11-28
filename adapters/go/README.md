@@ -5,7 +5,7 @@ the actively maintained Go SDK (`github.com/stellar/go` is deprecated).
 
 ```sh
 go build -o tripwire-go-adapter .
-tripwire run <corpus-dir> --adapter ./tripwire-go-adapter
+tripwire run <corpus-dir> -- ./tripwire-go-adapter
 ```
 
 ## Coverage

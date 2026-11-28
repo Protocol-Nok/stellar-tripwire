@@ -5,10 +5,13 @@ indexer) using that implementation's own decoding and its public APIs, then repo
 happened. Adapters can be written in any language; the runner only reads stdout.
 
 ```
-tripwire run <corpus-dir> --adapter <command> [args...]
+tripwire run <corpus-dir> [--json] -- <command> [args...]
 ```
 
-The runner appends the absolute corpus directory as the adapter's last argument.
+The adapter command goes after `--`, so it can contain its own flags (`java -jar
+x.jar`, `node --experimental-foo x.mjs`) without being mistaken for `tripwire`'s own —
+see `crates/tripwire-cli/tests/cli.rs` for why this isn't just stylistic. The runner
+appends the absolute corpus directory as the adapter's last argument.
 
 ## Output
 

@@ -16,7 +16,7 @@ bin=target/debug/tripwire
 run() { # run <sdk-version>
   mkdir -p "$work/sdk-$1"
   (cd "$work/sdk-$1" && npm init -y >/dev/null && npm i --silent "@stellar/stellar-sdk@$1")
-  TRIPWIRE_SDK_DIR="$work/sdk-$1" "$bin" run "$work/corpus" --adapter node adapters/js/adapter.mjs || true
+  TRIPWIRE_SDK_DIR="$work/sdk-$1" "$bin" run "$work/corpus" -- node adapters/js/adapter.mjs || true
 }
 
 pre="$(run "$PRE_FIX")"; echo "$pre"

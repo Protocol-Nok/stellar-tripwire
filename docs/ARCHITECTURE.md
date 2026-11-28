@@ -5,6 +5,7 @@ crates/tripwire-corpus/    generator + manifest types + verifier  (the source of
 crates/tripwire-cli/       `tripwire` binary: generate | verify | run
 adapters/js/               adapter: corpus -> @stellar/stellar-sdk -> results
 adapters/go/               adapter: corpus -> github.com/stellar/go-stellar-sdk -> results
+adapters/java/             adapter: corpus -> network.lightsail:stellar-sdk -> results
 linter/                    ESLint plugin: static checks on indexer *source*, not the corpus
 corpus/                    (generated, not committed here) the published snapshot
                             lives in stellar-tripwire-corpus
@@ -33,7 +34,7 @@ corpus consumable from any language, including ones this repo never builds.
 ## Data flow for `tripwire run`
 
 ```
-tripwire run <corpus> --adapter <cmd>
+tripwire run <corpus> -- <adapter-cmd>
         |
         v
   reads manifest.json  ---->  spawns <cmd> <corpus>  ---->  adapter decodes each

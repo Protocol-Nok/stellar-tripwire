@@ -17,6 +17,29 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   plugin with one rule so far, `missing-depth-cap` (flags recursion on an
   `ScVal` or authorization-tree-shaped parameter with no depth/size guard).
   Not yet published to npm; install from source (see `linter/README.md`).
+- Java adapter for `network.lightsail:stellar-sdk` (`adapters/java`), the
+  actively maintained Java SDK (GitHub redirects `stellar/java-stellar-sdk`
+  here). Found and reported a third, independent instance of the same asset-
+  ordering bug class as js-stellar-sdk#1766 and go-stellar-sdk's pre-`0.7.2`
+  `Asset.LessThan` — except this one is **currently open**, not historical:
+  `Asset.compareTo` in the current release (`6.0.0`) orders issuers by strkey
+  text instead of raw bytes. Filed as
+  [lightsail-network/java-stellar-sdk#849](https://github.com/lightsail-network/java-stellar-sdk/issues/849)
+  with a verified minimal reproduction before this was documented anywhere
+  public. `scripts/prove-detection-java.sh` asserts the current known-bad
+  state and is meant to start failing once upstream ships a fix — see
+  `adapters/java/README.md`.
+
+### Changed
+- **Breaking CLI change**: `tripwire run`'s adapter command now goes after a
+  literal `--` (`tripwire run <dir> [--json] -- <cmd>`), not after `--adapter`.
+  Second fix to the same underlying design problem: dropping
+  `allow_hyphen_values` in `0.1.2` fixed `--json` being swallowed, but broke
+  the opposite case — `tripwire run dir --adapter java -jar x.jar` rejected
+  `-jar` as an unrecognized flag, discovered while wiring up the Java adapter.
+  The `--` separator removes the ambiguity entirely rather than trading one
+  edge case for another; see `crates/tripwire-cli/tests/cli.rs` for both
+  regression tests side by side.
 
 ## [0.1.4]
 
