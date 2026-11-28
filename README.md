@@ -69,6 +69,15 @@ unimplemented after a real search for a TypeScript example to scope it
 against came up empty; see [`linter/README.md`](linter/README.md#status) for
 the full account, not a shrug.
 
+## Indexer-hardening guide
+
+The RFP also asks for a field-by-field guide an indexer author can follow.
+[`docs/indexer-hardening-guide.md`](docs/indexer-hardening-guide.md) covers
+validated vs. unvalidated fields, depth/size caps, deriving participants
+from the meta, and muxed/signed-payload handling — every specific claim
+sourced, marked as a draft pending the core-or-platform-engineer review the
+RFP itself asks for before this goes anywhere official.
+
 ## Try it
 
 ```sh

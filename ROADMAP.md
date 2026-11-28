@@ -86,6 +86,18 @@ a merged PR; see the linked issue for detail.
 
 ## Later
 
-- [ ] Indexer replay harness (Galexie-style ledger file input)
-- [ ] Indexer-hardening guide, publishable on developers.stellar.org
+- [ ] Indexer replay harness (Galexie-style ledger file input, or a mock
+      `getLedgers` RPC endpoint) — scoped this out before starting: it needs
+      a full, structurally valid synthetic `LedgerCloseMeta` (a
+      `GeneralizedTransactionSet`, ledger header, per-operation
+      `TransactionMeta`), a materially bigger task than any single adapter
+      built so far. Deliberately sequenced after the hardening guide rather
+      than started and left half-built.
+- [x] Indexer-hardening guide, publishable on developers.stellar.org (after
+      the core/platform-engineer review the RFP itself asks for):
+      `docs/indexer-hardening-guide.md`. Every specific claim sourced —
+      the RFP's own text, the two real wallet-backend sightings, Stellar's
+      developer docs — with secondary (not `stellar-core`-source-verified)
+      claims marked inline, exactly the kind the RFP's own review gate
+      exists to catch.
 - [ ] Per-CAP coverage manifest

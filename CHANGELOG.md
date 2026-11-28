@@ -26,6 +26,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   unvalidated fields. The third rule (`participants-from-envelope`) stays
   deferred after a real GitHub code search for a TypeScript instance of the
   bug came up empty; see `linter/README.md`'s Status section.
+- `docs/indexer-hardening-guide.md`: the RFP's requested field-by-field
+  guide (validated vs. unvalidated fields, depth/size caps, participants
+  from meta not the envelope, muxed/signed-payload handling, a checklist).
+  Every specific claim sourced to the RFP's own text, a sibling SDK's stated
+  understanding of the network rule, Stellar's developer docs, or a public
+  sighting; secondary claims not verified against `stellar-core`'s own
+  source are marked inline. Marked as a draft pending the core-or-platform-
+  engineer review the RFP itself asks for.
 
 ## [0.1.5]
 
