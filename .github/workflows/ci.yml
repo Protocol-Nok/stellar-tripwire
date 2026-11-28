@@ -59,7 +59,7 @@ jobs:
       run: { working-directory: linter }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm, cache-dependency-path: linter/package-lock.json }
       - run: npm ci
       - run: npm run build
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22 }
       - run: ./scripts/prove-detection.sh
   detection-go:
@@ -102,6 +102,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm, cache-dependency-path: replay/reference-js/package-lock.json }
       - run: ./scripts/prove-detection-replay.sh
